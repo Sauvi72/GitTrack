@@ -61,7 +61,7 @@ const CustomPieTooltip = ({ active, payload }: any) => {
   if (!active || !payload || !payload.length) return null;
   const item = payload[0];
   return (
-    <div className="bg-white border border-[#ede6db] rounded-xl px-3 py-2 shadow-lg text-xs pointer-events-none">
+    <div className="bg-white border border-[#ede6db] rounded-xl px-3 py-1.5 shadow-xl text-xs pointer-events-none z-50 whitespace-nowrap">
       <div className="flex items-center gap-2">
         <span
           className="w-2.5 h-2.5 rounded-full shrink-0"
@@ -295,8 +295,18 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({ onSelectStudent, onN
           <div className="flex items-center justify-between gap-4 py-2">
             {/* Donut Chart with Centered Metric */}
             <div className="w-44 h-44 relative flex items-center justify-center shrink-0">
+              {/* Centered Total / Open Count placed at base layer (z-0) */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
+                <span className="text-2xl font-extrabold text-[#11241a] leading-tight">
+                  {summary?.total_prs ?? 0}
+                </span>
+                <span className="text-xs text-[#516358] font-bold leading-tight">
+                  {summary?.open_prs ? 'Open PRs' : 'Total PRs'}
+                </span>
+              </div>
+
               {pieData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" className="relative z-10">
                   <PieChart>
                     <Pie
                       data={pieData}
@@ -310,22 +320,15 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({ onSelectStudent, onN
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip content={<CustomPieTooltip />} />
+                    <Tooltip
+                      content={<CustomPieTooltip />}
+                      wrapperStyle={{ zIndex: 50, pointerEvents: 'none' }}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
                 <div className="w-32 h-32 rounded-full border-8 border-[#0d3824] flex items-center justify-center" />
               )}
-
-              {/* Centered Total / Open Count */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-2xl font-extrabold text-[#11241a] leading-tight">
-                  {summary?.total_prs ?? 0}
-                </span>
-                <span className="text-xs text-[#516358] font-bold leading-tight">
-                  {summary?.open_prs ? 'Open PRs' : 'Total PRs'}
-                </span>
-              </div>
             </div>
 
             {/* Right Legend */}
