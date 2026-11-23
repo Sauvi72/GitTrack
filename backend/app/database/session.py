@@ -7,6 +7,11 @@ db_url = settings.DATABASE_URL
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
 
+# Ensure SSL mode for cloud PostgreSQL (e.g. Render) if not already specified
+if db_url.startswith("postgresql://") and "sslmode=" not in db_url and "localhost" not in db_url and "127.0.0.1" not in db_url:
+    delimiter = "&" if "?" in db_url else "?"
+    db_url = f"{db_url}{delimiter}sslmode=require"
+
 # SQLite connection args require check_same_thread=False for FastAPI concurrency
 connect_args = {}
 if db_url.startswith("sqlite"):

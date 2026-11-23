@@ -27,7 +27,12 @@ pwd_context = PasswordHash.recommended()
 
 def seed_initial_data():
     """Seeds initial teacher and default global tracking scope if not present."""
-    Base.metadata.create_all(bind=engine)
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        logger.critical("Failed to create tables or reach database: %s", e, exc_info=True)
+        return
+
     db = SessionLocal()
     try:
         # Check teacher
@@ -58,7 +63,7 @@ def seed_initial_data():
         db.commit()
     except Exception as e:
         db.rollback()
-        logger.error("Failed to seed initial data: %s", e)
+        logger.error("Failed to seed initial data: %s", e, exc_info=True)
     finally:
         db.close()
 
