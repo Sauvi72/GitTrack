@@ -9,7 +9,6 @@ import {
   FolderGit2,
   Building,
   Calendar,
-  Code2,
   Clock,
   Database,
   CheckCircle2,
@@ -314,65 +313,11 @@ export const StudentDetailPage: React.FC<StudentDetailPageProps> = ({ studentId,
         />
       </div>
 
-      {/* Secondary Code Metrics Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
-          <div>
-            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              PRs Merged In Period
-            </div>
-            <div className="text-2xl font-extrabold text-slate-900 mt-1">
-              {stats?.prs_merged_in_period ?? 0}
-            </div>
-            <div className="text-xs text-slate-500 font-medium mt-0.5">
-              Pull requests successfully landed
-            </div>
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
-            <GitMerge className="w-5 h-5" />
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
-          <div>
-            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              Lines Added
-            </div>
-            <div className="text-2xl font-extrabold text-emerald-600 font-mono mt-1">
-              +{stats?.total_additions?.toLocaleString() ?? 0}
-            </div>
-            <div className="text-xs text-slate-500 font-medium mt-0.5">
-              In {stats?.total_changed_files?.toLocaleString() ?? 0} modified files
-            </div>
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
-            <Code2 className="w-5 h-5" />
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
-          <div>
-            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              Lines Removed
-            </div>
-            <div className="text-2xl font-extrabold text-rose-600 font-mono mt-1">
-              -{stats?.total_deletions?.toLocaleString() ?? 0}
-            </div>
-            <div className="text-xs text-slate-500 font-medium mt-0.5">
-              Code deletions & refactors
-            </div>
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600">
-            <Code2 className="w-5 h-5" />
-          </div>
-        </div>
-      </div>
-
       {/* Scope Breakdown (Repositories & Organizations for Selected Window) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Repositories */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-3">
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm flex flex-col">
+          <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
             <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
               <FolderGit2 className="w-4 h-4 text-emerald-600" />
               Repositories Contributed To
@@ -382,17 +327,17 @@ export const StudentDetailPage: React.FC<StudentDetailPageProps> = ({ studentId,
             </span>
           </div>
 
-          <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+          <div className="space-y-2 min-h-[260px] max-h-[440px] overflow-y-auto pr-1 flex-1">
             {stats?.repositories && stats.repositories.length > 0 ? (
               stats.repositories.map((r) => (
                 <div
                   key={r.repository}
-                  className="flex justify-between items-center text-sm p-2.5 rounded-xl bg-slate-50/80 border border-slate-100 hover:bg-slate-100/60 transition-colors"
+                  className="flex justify-between items-center text-sm p-3 rounded-xl bg-slate-50/80 border border-slate-100 hover:bg-slate-100/60 transition-colors"
                 >
-                  <span className="font-mono text-slate-800 font-semibold truncate max-w-[220px]" title={r.repository}>
+                  <span className="font-mono text-slate-800 font-semibold truncate max-w-[240px]" title={r.repository}>
                     {r.repository}
                   </span>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 shrink-0">
                     <span className="font-bold text-slate-900">{r.total} PRs</span>
                     <span className="text-xs text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
                       {r.merged} merged
@@ -406,7 +351,7 @@ export const StudentDetailPage: React.FC<StudentDetailPageProps> = ({ studentId,
                 </div>
               ))
             ) : (
-              <div className="text-sm text-slate-400 py-6 text-center">
+              <div className="text-sm text-slate-400 py-16 text-center flex items-center justify-center h-full">
                 No repository contributions recorded in this time window.
               </div>
             )}
@@ -414,8 +359,8 @@ export const StudentDetailPage: React.FC<StudentDetailPageProps> = ({ studentId,
         </div>
 
         {/* Organizations */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-3">
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm flex flex-col">
+          <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
             <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
               <Building className="w-4 h-4 text-blue-600" />
               Organizations Contributed To
@@ -425,15 +370,15 @@ export const StudentDetailPage: React.FC<StudentDetailPageProps> = ({ studentId,
             </span>
           </div>
 
-          <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+          <div className="space-y-2 min-h-[260px] max-h-[440px] overflow-y-auto pr-1 flex-1">
             {stats?.organizations && stats.organizations.length > 0 ? (
               stats.organizations.map((o) => (
                 <div
                   key={o.organization}
-                  className="flex justify-between items-center text-sm p-2.5 rounded-xl bg-slate-50/80 border border-slate-100 hover:bg-slate-100/60 transition-colors"
+                  className="flex justify-between items-center text-sm p-3 rounded-xl bg-slate-50/80 border border-slate-100 hover:bg-slate-100/60 transition-colors"
                 >
                   <span className="font-bold text-slate-900">{o.organization}</span>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 shrink-0">
                     <span className="text-slate-900 font-bold">{o.total} PRs</span>
                     <span className="text-xs text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
                       {o.merged} merged
@@ -447,7 +392,7 @@ export const StudentDetailPage: React.FC<StudentDetailPageProps> = ({ studentId,
                 </div>
               ))
             ) : (
-              <div className="text-sm text-slate-400 py-6 text-center">
+              <div className="text-sm text-slate-400 py-16 text-center flex items-center justify-center h-full">
                 No organization contributions recorded in this time window.
               </div>
             )}
