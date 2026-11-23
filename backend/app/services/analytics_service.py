@@ -209,15 +209,34 @@ class AnalyticsService:
             "last_synced_at": last_sync.isoformat() if last_sync else None
         }
 
-    def get_leaderboard(self, limit: int = 10, sort_by: str = "merged") -> List[Dict[str, Any]]:
-        """Rank active students by merged PRs or total PRs."""
+    def get_leaderboard(
+        self,
+        limit: int = 10,
+        sort_by: str = "merged",
+        date_range: Optional[str] = None,
+        date_from: Optional[str] = None,
+        date_to: Optional[str] = None,
+        tz_name: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """Rank active students by merged PRs or total PRs within the specified date range."""
         students = self.db.query(Student).filter(Student.is_active == True).all()
         board = []
 
-        today_start, today_end = get_timezone_bounds(date_range="today")
+        start_utc, end_utc = get_timezone_bounds(
+            date_range=date_range,
+            date_from=date_from,
+            date_to=date_to,
+            tz_name=tz_name
+        )
+        today_start, today_end = get_timezone_bounds(date_range="today", tz_name=tz_name)
 
         for s in students:
             prs = self.db.query(PullRequest).filter(PullRequest.student_id == s.id)
+            if start_utc:
+                prs = prs.filter(PullRequest.created_at_github >= start_utc)
+            if end_utc:
+                prs = prs.filter(PullRequest.created_at_github <= end_utc)
+
             total = prs.count()
             merged = prs.filter(PullRequest.status == "MERGED").count()
             open_count = prs.filter(PullRequest.status == "OPEN").count()
@@ -225,7 +244,8 @@ class AnalyticsService:
             pct = round((merged / total * 100.0), 1) if total > 0 else 0.0
 
             # Today's PRs
-            prs_today = prs.filter(
+            prs_today = self.db.query(PullRequest).filter(
+                PullRequest.student_id == s.id,
                 PullRequest.created_at_github >= today_start,
                 PullRequest.created_at_github <= today_end
             ).count()
@@ -251,10 +271,165 @@ class AnalyticsService:
 
         return board[:limit]
 
-    def get_activity_timeline(self, days: int = 30) -> List[Dict[str, Any]]:
-        """Group PR creation and merge events day-by-day for charting."""
+    def get_activity_timeline(
+        self,
+        days: Optional[int] = None,
+        date_range: Optional[str] = None,
+        date_from: Optional[str] = None,
+        date_to: Optional[str] = None,
+        tz_name: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """Group PR creation and merge events for charting, respecting date filters."""
+        import calendar
+        tz_str = tz_name or settings.DEFAULT_TIMEZONE or "Asia/Kolkata"
+        try:
+            tz = zoneinfo.ZoneInfo(tz_str)
+        except Exception:
+            tz = zoneinfo.ZoneInfo("Asia/Kolkata")
+
+        now_local = datetime.datetime.now(tz)
+        normalized_range = (date_range or "").lower().strip()
+
+        # Case 1: Today -> 3-hour bins across today
+        if normalized_range == "today":
+            start_local = now_local.replace(hour=0, minute=0, second=0, microsecond=0)
+            end_local = start_local + datetime.timedelta(days=1)
+            start_utc = start_local.astimezone(datetime.timezone.utc).replace(tzinfo=None)
+            end_utc = end_local.astimezone(datetime.timezone.utc).replace(tzinfo=None)
+
+            prs = self.db.query(PullRequest).filter(
+                PullRequest.created_at_github >= start_utc,
+                PullRequest.created_at_github <= end_utc
+            ).all()
+
+            timeline = []
+            for h in range(0, 24, 3):
+                bin_label = f"{h:02d}:00"
+                bin_start_h = h
+                bin_end_h = h + 3
+                c_count = 0
+                m_count = 0
+                for pr in prs:
+                    if pr.created_at_github:
+                        pr_local = pr.created_at_github.replace(tzinfo=datetime.timezone.utc).astimezone(tz)
+                        if bin_start_h <= pr_local.hour < bin_end_h:
+                            c_count += 1
+                            if pr.status == "MERGED":
+                                m_count += 1
+                timeline.append({
+                    "date": bin_label,
+                    "created": c_count,
+                    "merged": m_count,
+                    "closed_unmerged": 0
+                })
+            return timeline
+
+        # Case 2: This Week -> daily from Monday to Sunday of current week
+        elif normalized_range in ("this_week", "this week"):
+            monday = now_local - datetime.timedelta(days=now_local.weekday())
+            start_local = monday.replace(hour=0, minute=0, second=0, microsecond=0)
+            end_local = start_local + datetime.timedelta(days=7)
+            start_utc = start_local.astimezone(datetime.timezone.utc).replace(tzinfo=None)
+            end_utc = end_local.astimezone(datetime.timezone.utc).replace(tzinfo=None)
+
+            prs = self.db.query(PullRequest).filter(
+                PullRequest.created_at_github >= start_utc,
+                PullRequest.created_at_github <= end_utc
+            ).all()
+
+            day_names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+            timeline = []
+            for i in range(7):
+                day_dt = start_local + datetime.timedelta(days=i)
+                day_str = day_dt.date().isoformat()
+                label = f"{day_names[i]} ({day_str[5:]})"
+                c_count = 0
+                m_count = 0
+                for pr in prs:
+                    if pr.created_at_github:
+                        pr_local = pr.created_at_github.replace(tzinfo=datetime.timezone.utc).astimezone(tz)
+                        if pr_local.date() == day_dt.date():
+                            c_count += 1
+                            if pr.status == "MERGED":
+                                m_count += 1
+                timeline.append({
+                    "date": label,
+                    "created": c_count,
+                    "merged": m_count,
+                    "closed_unmerged": 0
+                })
+            return timeline
+
+        # Case 3: This Month -> days from day 1 to end of current month
+        elif normalized_range in ("this_month", "this month"):
+            start_local = now_local.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            _, num_days = calendar.monthrange(now_local.year, now_local.month)
+            end_local = start_local + datetime.timedelta(days=num_days)
+            start_utc = start_local.astimezone(datetime.timezone.utc).replace(tzinfo=None)
+            end_utc = end_local.astimezone(datetime.timezone.utc).replace(tzinfo=None)
+
+            prs = self.db.query(PullRequest).filter(
+                PullRequest.created_at_github >= start_utc,
+                PullRequest.created_at_github <= end_utc
+            ).all()
+
+            timeline = []
+            for d in range(1, num_days + 1):
+                day_dt = start_local.replace(day=d)
+                day_str = day_dt.date().isoformat()
+                c_count = 0
+                m_count = 0
+                for pr in prs:
+                    if pr.created_at_github:
+                        pr_local = pr.created_at_github.replace(tzinfo=datetime.timezone.utc).astimezone(tz)
+                        if pr_local.date() == day_dt.date():
+                            c_count += 1
+                            if pr.status == "MERGED":
+                                m_count += 1
+                timeline.append({
+                    "date": day_str,
+                    "created": c_count,
+                    "merged": m_count,
+                    "closed_unmerged": 0
+                })
+            return timeline
+
+        # Case 4: This Year -> 12 months (Jan..Dec)
+        elif normalized_range in ("this_year", "this year"):
+            start_local = now_local.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+            end_local = now_local.replace(month=12, day=31, hour=23, minute=59, second=59)
+            start_utc = start_local.astimezone(datetime.timezone.utc).replace(tzinfo=None)
+            end_utc = end_local.astimezone(datetime.timezone.utc).replace(tzinfo=None)
+
+            prs = self.db.query(PullRequest).filter(
+                PullRequest.created_at_github >= start_utc,
+                PullRequest.created_at_github <= end_utc
+            ).all()
+
+            month_names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+            timeline = []
+            for m in range(1, 13):
+                c_count = 0
+                m_count = 0
+                for pr in prs:
+                    if pr.created_at_github:
+                        pr_local = pr.created_at_github.replace(tzinfo=datetime.timezone.utc).astimezone(tz)
+                        if pr_local.year == now_local.year and pr_local.month == m:
+                            c_count += 1
+                            if pr.status == "MERGED":
+                                m_count += 1
+                timeline.append({
+                    "date": month_names[m - 1],
+                    "created": c_count,
+                    "merged": m_count,
+                    "closed_unmerged": 0
+                })
+            return timeline
+
+        # Case 5: Default / All Time / days=30
+        effective_days = days or 30
         start_date = (
-            datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=days)
+            datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=effective_days)
         ).date()
 
         prs = (
@@ -264,7 +439,7 @@ class AnalyticsService:
         )
 
         timeline_map: Dict[str, Dict[str, int]] = {}
-        for i in range(days + 1):
+        for i in range(effective_days + 1):
             day_str = (start_date + datetime.timedelta(days=i)).isoformat()
             timeline_map[day_str] = {"date": day_str, "created": 0, "merged": 0, "closed_unmerged": 0}
 
@@ -280,15 +455,33 @@ class AnalyticsService:
 
         return sorted(timeline_map.values(), key=lambda x: x["date"])
 
-    def get_top_repositories(self, limit: int = 8) -> List[Dict[str, Any]]:
-        """List repositories with the highest student PR counts."""
+    def get_top_repositories(
+        self,
+        limit: int = 8,
+        date_range: Optional[str] = None,
+        date_from: Optional[str] = None,
+        date_to: Optional[str] = None,
+        tz_name: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """List repositories with the highest student PR counts within the specified date range."""
+        start_utc, end_utc = get_timezone_bounds(
+            date_range=date_range,
+            date_from=date_from,
+            date_to=date_to,
+            tz_name=tz_name
+        )
+        query = self.db.query(
+            PullRequest.repository_full_name,
+            func.count(PullRequest.id).label("total"),
+            func.sum(case((PullRequest.status == "MERGED", 1), else_=0)).label("merged")
+        )
+        if start_utc:
+            query = query.filter(PullRequest.created_at_github >= start_utc)
+        if end_utc:
+            query = query.filter(PullRequest.created_at_github <= end_utc)
+
         rows = (
-            self.db.query(
-                PullRequest.repository_full_name,
-                func.count(PullRequest.id).label("total"),
-                func.sum(case((PullRequest.status == "MERGED", 1), else_=0)).label("merged")
-            )
-            .group_by(PullRequest.repository_full_name)
+            query.group_by(PullRequest.repository_full_name)
             .order_by(desc("total"))
             .limit(limit)
             .all()
@@ -303,16 +496,34 @@ class AnalyticsService:
             for r in rows
         ]
 
-    def get_top_organizations(self, limit: int = 8) -> List[Dict[str, Any]]:
-        """List organizations with the highest student PR counts."""
+    def get_top_organizations(
+        self,
+        limit: int = 8,
+        date_range: Optional[str] = None,
+        date_from: Optional[str] = None,
+        date_to: Optional[str] = None,
+        tz_name: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """List organizations with the highest student PR counts within the specified date range."""
+        start_utc, end_utc = get_timezone_bounds(
+            date_range=date_range,
+            date_from=date_from,
+            date_to=date_to,
+            tz_name=tz_name
+        )
+        query = self.db.query(
+            PullRequest.organization_name,
+            func.count(PullRequest.id).label("total"),
+            func.sum(case((PullRequest.status == "MERGED", 1), else_=0)).label("merged")
+        ).filter(PullRequest.organization_name.isnot(None))
+
+        if start_utc:
+            query = query.filter(PullRequest.created_at_github >= start_utc)
+        if end_utc:
+            query = query.filter(PullRequest.created_at_github <= end_utc)
+
         rows = (
-            self.db.query(
-                PullRequest.organization_name,
-                func.count(PullRequest.id).label("total"),
-                func.sum(case((PullRequest.status == "MERGED", 1), else_=0)).label("merged")
-            )
-            .filter(PullRequest.organization_name.isnot(None))
-            .group_by(PullRequest.organization_name)
+            query.group_by(PullRequest.organization_name)
             .order_by(desc("total"))
             .limit(limit)
             .all()

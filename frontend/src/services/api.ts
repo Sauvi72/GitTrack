@@ -205,9 +205,17 @@ export const api = {
     if (date_to) query.set('date_to', date_to);
     return request<DashboardSummary>(`/dashboard/summary?${query.toString()}`);
   },
-  getLeaderboard: (limit = 10, sort_by = 'merged') =>
-    request<LeaderboardEntry[]>(`/dashboard/leaderboard?limit=${limit}&sort_by=${sort_by}`),
-  getActivity: (days = 30) => request<ActivityData>(`/dashboard/activity?days=${days}`),
+  getLeaderboard: (limit = 10, sort_by = 'merged', date_range?: string) => {
+    const query = new URLSearchParams({ limit: String(limit), sort_by });
+    if (date_range) query.set('date_range', date_range);
+    return request<LeaderboardEntry[]>(`/dashboard/leaderboard?${query.toString()}`);
+  },
+  getActivity: (days?: number, date_range?: string) => {
+    const query = new URLSearchParams();
+    if (days) query.set('days', String(days));
+    if (date_range) query.set('date_range', date_range);
+    return request<ActivityData>(`/dashboard/activity?${query.toString()}`);
+  },
 
   // Reports
   getCsvDownloadUrl: (params?: { student_id?: number; status?: string; date_from?: string; date_to?: string }) => {

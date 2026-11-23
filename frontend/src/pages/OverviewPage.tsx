@@ -86,8 +86,8 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({ onSelectStudent, onN
     try {
       const [sumData, leadData, actData] = await Promise.all([
         api.getDashboardSummary(dateRange || undefined),
-        api.getLeaderboard(6, 'merged'),
-        api.getActivity(30),
+        api.getLeaderboard(6, 'merged', dateRange || undefined),
+        api.getActivity(undefined, dateRange || undefined),
       ]);
       setSummary(sumData);
       setLeaderboard(leadData);
@@ -102,6 +102,17 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({ onSelectStudent, onN
   useEffect(() => {
     fetchDashboardData();
   }, [dateRange]);
+
+  const rangeLabel =
+    dateRange === 'today'
+      ? 'Today'
+      : dateRange === 'this_week'
+      ? 'This Week'
+      : dateRange === 'this_month'
+      ? 'This Month'
+      : dateRange === 'this_year'
+      ? 'This Year'
+      : 'All Time';
 
   const pieData = summary
     ? [
@@ -195,7 +206,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({ onSelectStudent, onN
                 <BarChart2 className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="font-bold text-[#11241a] text-base leading-tight">PR Activity (Last 30 Days)</h3>
+                <h3 className="font-bold text-[#11241a] text-base leading-tight">PR Activity ({rangeLabel})</h3>
                 <p className="text-xs text-[#516358] font-medium leading-tight mt-0.5">Creation vs. upstream merge dates</p>
               </div>
             </div>
@@ -228,7 +239,13 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({ onSelectStudent, onN
                   <CartesianGrid strokeDasharray="3 3" stroke="#f4ede4" vertical={false} />
                   <XAxis
                     dataKey="date"
-                    tickFormatter={(val) => val.slice(5)}
+                    tickFormatter={(val: string) => {
+                      if (!val) return '';
+                      if (val.length === 10 && val.includes('-')) {
+                        return val.slice(5);
+                      }
+                      return val;
+                    }}
                     stroke="#718076"
                     fontSize={11}
                     tickLine={false}
@@ -352,7 +369,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({ onSelectStudent, onN
               </div>
               <div>
                 <h3 className="font-bold text-[#11241a] text-base leading-tight">Top Contributing Students</h3>
-                <p className="text-xs text-[#516358] font-medium leading-tight mt-0.5">Ranked by verified merged pull requests</p>
+                <p className="text-xs text-[#516358] font-medium leading-tight mt-0.5">Ranked by verified merged pull requests ({rangeLabel})</p>
               </div>
             </div>
             <button
@@ -435,7 +452,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({ onSelectStudent, onN
             </div>
             <div>
               <h3 className="font-bold text-[#11241a] text-base leading-tight">Top Repositories</h3>
-              <p className="text-xs text-[#516358] font-medium leading-tight mt-0.5">Where students contributed code</p>
+              <p className="text-xs text-[#516358] font-medium leading-tight mt-0.5">Where students contributed code ({rangeLabel})</p>
             </div>
           </div>
 
