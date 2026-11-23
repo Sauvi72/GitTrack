@@ -28,21 +28,21 @@ export const StudentsPage: React.FC<StudentsPageProps> = ({ onSelectStudent }) =
   const [syncingMap, setSyncingMap] = useState<Record<number, boolean>>({});
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
-  const fetchStudents = async () => {
-    setIsLoading(true);
+  const fetchStudents = async (showLoading = false) => {
+    if (showLoading) setIsLoading(true);
     try {
       const data = await api.getStudents({ q: searchQuery || undefined });
       setStudents(data);
     } catch (err) {
       console.error('Failed to fetch students:', err);
     } finally {
-      setIsLoading(false);
+      if (showLoading) setIsLoading(false);
     }
   };
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      fetchStudents();
+      fetchStudents(students.length === 0);
     }, 200);
     return () => clearTimeout(timer);
   }, [searchQuery]);
@@ -66,7 +66,7 @@ export const StudentsPage: React.FC<StudentsPageProps> = ({ onSelectStudent }) =
           setSyncingMap((prev) => {
             const hadSyncing = Object.values(prev).some(Boolean);
             if (hadSyncing) {
-              fetchStudents();
+              fetchStudents(false);
             }
             return {};
           });
