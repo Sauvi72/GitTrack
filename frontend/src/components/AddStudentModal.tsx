@@ -51,7 +51,6 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
             </div>
             <div>
               <h3 className="font-semibold text-slate-800">Add New Student</h3>
-              <p className="text-xs text-slate-400">Validated directly against GitHub REST API</p>
             </div>
           </div>
           <button
@@ -79,7 +78,7 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
               required
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="e.g. torvalds or octocat"
+              placeholder="e.g. sauvi72"
               className="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
             />
             <p className="text-xs text-slate-500 mt-1">
@@ -95,7 +94,7 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
               type="text"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="e.g. Linus Torvalds"
+              placeholder="e.g. Saurav Kumar"
               className="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
             />
           </div>

@@ -162,7 +162,7 @@ export const Header: React.FC<HeaderProps> = ({
                 title="Click to customize professor name"
               >
                 <span className="text-sm font-bold text-white tracking-tight group-hover:text-[#fceddb] transition-colors">
-                  {teacher?.full_name || 'Prof. Davis'}
+                  {teacher?.full_name || 'Saurav Kumar'}
                 </span>
                 <ChevronDown className="w-4 h-4 text-white/60 group-hover:text-white transition-colors" />
               </div>

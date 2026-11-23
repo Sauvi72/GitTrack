@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     # Initial Teacher Seed
     INITIAL_TEACHER_EMAIL: str = "teacher@opentrack.edu"
     INITIAL_TEACHER_PASSWORD: str = "OpenTrack2026!"
-    INITIAL_TEACHER_NAME: str = "Prof. Davis"
+    INITIAL_TEACHER_NAME: str = "Saurav Kumar"
     
     # Timezone
     DEFAULT_TIMEZONE: str = "Asia/Kolkata"
