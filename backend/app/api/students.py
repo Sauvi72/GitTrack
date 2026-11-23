@@ -221,14 +221,13 @@ def update_student(
 
 
 @router.delete("/{student_id}")
-def delete_or_archive_student(
+def delete_student(
     student_id: int,
-    hard_delete: bool = Query(False, description="Permanently delete instead of archiving"),
+    hard_delete: bool = Query(True, description="Permanently delete instead of archiving"),
     db: Session = Depends(get_db)
 ):
     """
-    Archive (soft-delete) or permanently remove a student.
-    Archiving is preferred to retain historical contribution records.
+    Permanently delete a student and their contribution records from the database.
     """
     student = db.query(Student).filter(Student.id == student_id).first()
     if not student:

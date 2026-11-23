@@ -5,7 +5,7 @@ import {
   RefreshCw,
   ExternalLink,
   ChevronRight,
-  Archive,
+  Trash2,
   CheckCircle2,
   AlertCircle,
   GitMerge,
@@ -99,15 +99,22 @@ export const StudentsPage: React.FC<StudentsPageProps> = ({ onSelectStudent }) =
     }
   };
 
-  const handleArchive = async (e: React.MouseEvent, studentId: number) => {
+  const handleDeleteStudent = async (e: React.MouseEvent, studentId: number, studentName: string) => {
     e.stopPropagation();
-    if (!window.confirm('Archive this student? Their historical contribution data will be preserved.')) return;
+    if (
+      !window.confirm(
+        `Are you sure you want to permanently delete "${studentName}"?\n\nWarning: This will permanently delete this student and all their tracked pull requests from the database.`
+      )
+    ) {
+      return;
+    }
 
     try {
-      await api.deleteStudent(studentId, false);
+      await api.deleteStudent(studentId, true);
+      setStatusMessage(`Student "${studentName}" was permanently deleted.`);
       fetchStudents();
     } catch (err: any) {
-      alert(`Failed to archive student: ${err.message}`);
+      alert(`Failed to delete student: ${err.message}`);
     }
   };
 
@@ -212,11 +219,6 @@ export const StudentsPage: React.FC<StudentsPageProps> = ({ onSelectStudent }) =
                             <div className="font-bold text-slate-900 group-hover:text-emerald-700 transition-colors text-sm">
                               {student.display_name || student.github_username}
                             </div>
-                            {!student.is_active && (
-                              <span className="text-xs text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-medium">
-                                Archived
-                              </span>
-                            )}
                           </div>
                         </div>
                       </td>
@@ -308,11 +310,11 @@ export const StudentsPage: React.FC<StudentsPageProps> = ({ onSelectStudent }) =
                             <RefreshCw className="w-3.5 h-3.5" />
                           </button>
                           <button
-                            onClick={(e) => handleArchive(e, student.id)}
+                            onClick={(e) => handleDeleteStudent(e, student.id, student.display_name || student.github_username)}
                             className="p-1.5 rounded-lg border border-rose-200 bg-rose-50/70 text-rose-600 hover:text-rose-700 hover:bg-rose-100 hover:border-rose-300 transition-colors shadow-2xs"
-                            title="Delete / Archive student"
+                            title="Delete student permanently"
                           >
-                            <Archive className="w-3.5 h-3.5" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                           <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-600 transition-colors" />
                         </div>

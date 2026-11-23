@@ -60,8 +60,8 @@ def test_create_and_get_students(client, monkeypatch):
     assert res_update.status_code == 200
     assert res_update.json()["display_name"] == "Updated Name"
 
-    # 8. Archive student
-    res_archive = client.delete(f"/api/students/{student_id}")
-    assert res_archive.status_code == 200
+    # 8. Delete student permanently
+    res_delete = client.delete(f"/api/students/{student_id}")
+    assert res_delete.status_code == 200
     res_check = client.get(f"/api/students/{student_id}")
-    assert res_check.json()["is_active"] is False
+    assert res_check.status_code == 404

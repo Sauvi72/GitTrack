@@ -108,7 +108,7 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify(data),
     }),
-  deleteStudent: (id: number, hardDelete = false) =>
+  deleteStudent: (id: number, hardDelete = true) =>
     request<{ message: string }>(`/students/${id}?hard_delete=${hardDelete}`, {
       method: 'DELETE',
     }),
