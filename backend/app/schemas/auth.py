@@ -1,0 +1,28 @@
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
+from datetime import datetime
+from typing import Optional
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(..., min_length=6)
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    expires_in: int
+
+
+class TeacherResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    email: EmailStr
+    full_name: str
+    is_active: bool
+    created_at: datetime
+
+
+class TeacherUpdateRequest(BaseModel):
+    full_name: Optional[str] = None

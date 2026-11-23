@@ -1,0 +1,33 @@
+from sqlalchemy import create_engine
+from sqlalchemy.orm import declarative_base, sessionmaker, Session
+from app.core.config import settings
+
+db_url = settings.DATABASE_URL
+# Render PostgreSQL URLs start with postgres://, SQLAlchemy requires postgresql://
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+
+# SQLite connection args require check_same_thread=False for FastAPI concurrency
+connect_args = {}
+if db_url.startswith("sqlite"):
+    connect_args = {"check_same_thread": False}
+
+engine = create_engine(
+    db_url,
+    connect_args=connect_args,
+    echo=False,
+    future=True
+)
+
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, future=True)
+
+Base = declarative_base()
+
+
+def get_db():
+    """Dependency that provides an active database session and ensures cleanup."""
+    db: Session = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

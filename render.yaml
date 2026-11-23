@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: opentrack-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: GITHUB_TOKEN
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: INITIAL_TEACHER_EMAIL
+        value: teacher@opentrack.edu
+      - key: INITIAL_TEACHER_PASSWORD
+        sync: false
+      - key: DEFAULT_TIMEZONE
+        value: Asia/Kolkata
