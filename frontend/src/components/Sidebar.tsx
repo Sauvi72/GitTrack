@@ -24,7 +24,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
           <CircleDot className="w-5 h-5 text-emerald-400" />
         </div>
         <div>
-          <div className="font-bold tracking-tight text-white leading-tight">OpenTrack</div>
+          <div className="font-bold tracking-tight text-white leading-tight">GitTrack</div>
           <div className="text-[11px] text-slate-400 leading-tight">GitHub Tracker</div>
         </div>
       </div>

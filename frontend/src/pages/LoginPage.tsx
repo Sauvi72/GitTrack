@@ -34,9 +34,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         {/* Brand */}
         <div className="text-center space-y-2">
           <div className="inline-flex w-14 h-14 rounded-2xl overflow-hidden shadow-xs border border-slate-200">
-            <img src="/logo.png" alt="OpenTrack Logo" className="w-full h-full object-cover" />
+            <img src="/logo.png" alt="GitTrack Logo" className="w-full h-full object-cover" />
           </div>
-          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">OpenTrack</h2>
+          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">GitTrack</h2>
           <p className="text-xs text-slate-400">Student Contribution Tracker — Monitoring Dashboard</p>
         </div>
 

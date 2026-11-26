@@ -80,10 +80,10 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Left: Brand Identity */}
         <div className="flex items-center gap-3 shrink-0">
           <div className="w-9 h-9 rounded-xl overflow-hidden border border-white/20 shadow-xs flex items-center justify-center shrink-0 bg-[#353b4e]">
-            <img src="/logo.png" alt="OpenTrack Logo" className="w-full h-full object-cover" />
+            <img src="/logo.png" alt="GitTrack Logo" className="w-full h-full object-cover" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-base font-bold text-white tracking-tight">OpenTrack</span>
+            <span className="text-base font-bold text-white tracking-tight">GitTrack</span>
           </div>
         </div>
 

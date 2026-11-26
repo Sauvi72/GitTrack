@@ -48,7 +48,7 @@ export const App: React.FC = () => {
   if (isInitializing) {
     return (
       <div className="min-h-screen bg-[#09261a] flex items-center justify-center text-xs text-[#a0b5a8]">
-        Loading OpenTrack...
+        Loading GitTrack...
       </div>
     );
   }
