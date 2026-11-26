@@ -192,8 +192,15 @@ class SyncService:
                 )
 
                 if existing_pr:
-                    # Update fields
+                    # Update fields, preserving richer detail fields when updating from search summary
+                    preserve_if_empty = {"merged_by", "base_branch", "head_branch"}
+                    preserve_if_zero = {"commits", "additions", "deletions", "changed_files", "review_comments"}
                     for field_name, field_val in processed.items():
+                        if has_full_search_data:
+                            if field_name in preserve_if_empty and field_val is None:
+                                continue
+                            if field_name in preserve_if_zero and field_val == 0:
+                                continue
                         setattr(existing_pr, field_name, field_val)
                     updated_count += 1
                 else:

@@ -328,7 +328,9 @@ export const StudentsPage: React.FC<StudentsPageProps> = ({ onSelectStudent }) =
       <AddStudentModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        onStudentAdded={(newStudent) => setStudents((prev) => [newStudent, ...prev])}
+        onStudentAdded={(newStudent) =>
+          setStudents((prev) => [newStudent, ...prev.filter((s) => s.id !== newStudent.id)])
+        }
       />
     </div>
   );
