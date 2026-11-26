@@ -82,6 +82,8 @@ def process_pull_request_payload(
     # Status classification
     state = pr_payload.get("state", "open")
     merged_at_raw = pr_payload.get("merged_at")
+    if merged_at_raw is None and isinstance(pr_payload.get("pull_request"), dict):
+        merged_at_raw = pr_payload["pull_request"].get("merged_at")
     status = classify_pr_status(state, merged_at_raw)
 
     # Merged by

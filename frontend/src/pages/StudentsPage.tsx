@@ -47,8 +47,11 @@ export const StudentsPage: React.FC<StudentsPageProps> = ({ onSelectStudent }) =
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Live polling for active sync jobs to auto-update student data
+  // Only poll sync status while a student is actively syncing
+  const hasActiveSync = Object.values(syncingMap).some(Boolean);
   useEffect(() => {
+    if (!hasActiveSync) return;
+
     let isMounted = true;
     const checkSyncStatus = async () => {
       try {
@@ -60,16 +63,10 @@ export const StudentsPage: React.FC<StudentsPageProps> = ({ onSelectStudent }) =
           activeIds.forEach((id) => {
             newMap[id] = true;
           });
-          setSyncingMap((prev) => ({ ...prev, ...newMap }));
+          setSyncingMap(newMap);
         } else {
-          // Check if previously any student was syncing in syncingMap
-          setSyncingMap((prev) => {
-            const hadSyncing = Object.values(prev).some(Boolean);
-            if (hadSyncing) {
-              fetchStudents(false);
-            }
-            return {};
-          });
+          setSyncingMap({});
+          fetchStudents(false);
         }
       } catch (err) {
         // Polling error silently ignored
@@ -81,7 +78,7 @@ export const StudentsPage: React.FC<StudentsPageProps> = ({ onSelectStudent }) =
       isMounted = false;
       clearInterval(interval);
     };
-  }, []);
+  }, [hasActiveSync]);
 
   const handleSyncStudent = async (e: React.MouseEvent, studentId: number) => {
     e.stopPropagation();
@@ -331,7 +328,7 @@ export const StudentsPage: React.FC<StudentsPageProps> = ({ onSelectStudent }) =
       <AddStudentModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        onStudentAdded={() => fetchStudents()}
+        onStudentAdded={(newStudent) => setStudents((prev) => [newStudent, ...prev])}
       />
     </div>
   );

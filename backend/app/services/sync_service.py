@@ -150,16 +150,26 @@ class SyncService:
             new_count = 0
             updated_count = 0
 
-            # Step 4: Fetch detailed payloads and upsert into database
+            # Step 4: Upsert into database (use search item directly when complete to avoid N+1 API calls)
             for key, (owner, repo, pr_number, search_item) in dedup_targets.items():
-                try:
-                    pr_details = self.github_client.get_pull_request_details(owner, repo, pr_number)
-                except Exception as fetch_err:
-                    logger.warning("Could not fetch details for %s/%s#%d: %s. Using search summary.", owner, repo, pr_number, fetch_err)
-                    if search_item:
-                        pr_details = search_item
-                    else:
-                        continue
+                has_full_search_data = (
+                    isinstance(search_item, dict)
+                    and "id" in search_item
+                    and "node_id" in search_item
+                    and "created_at" in search_item
+                    and isinstance(search_item.get("pull_request"), dict)
+                )
+                if has_full_search_data:
+                    pr_details = search_item
+                else:
+                    try:
+                        pr_details = self.github_client.get_pull_request_details(owner, repo, pr_number)
+                    except Exception as fetch_err:
+                        logger.warning("Could not fetch details for %s/%s#%d: %s. Using search summary.", owner, repo, pr_number, fetch_err)
+                        if search_item:
+                            pr_details = search_item
+                        else:
+                            continue
 
                 processed = process_pull_request_payload(
                     pr_payload=pr_details,
