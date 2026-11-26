@@ -143,9 +143,9 @@ export const StudentDetailPage: React.FC<StudentDetailPageProps> = ({ studentId,
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <button
           onClick={onBack}
-          className="inline-flex items-center gap-2.5 px-4 py-2 bg-white hover:bg-[#faf6ee] text-[#11241a] border border-[#ede6db] rounded-xl text-sm font-bold shadow-xs transition-all hover:border-[#d0c6b5] group"
+          className="inline-flex items-center gap-2.5 px-4 py-2 bg-white hover:bg-[#fceddb]/60 text-[#09261a] border border-[#0d3824]/25 hover:border-[#0d3824]/50 rounded-xl text-sm font-bold shadow-sm hover:shadow transition-all group"
         >
-          <div className="p-1 rounded-lg bg-[#faf6ee] group-hover:bg-[#f3ece0] text-[#0d3824] transition-colors">
+          <div className="p-1 rounded-lg bg-[#eaf4ed] group-hover:bg-[#0d3824] text-[#0d3824] group-hover:text-white transition-colors">
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
           </div>
           <span>Back to Students Directory</span>
