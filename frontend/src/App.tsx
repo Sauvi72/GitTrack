@@ -47,8 +47,30 @@ export const App: React.FC = () => {
 
   if (isInitializing) {
     return (
-      <div className="min-h-screen bg-[#09261a] flex items-center justify-center text-xs text-[#a0b5a8]">
-        Loading GitTrack...
+      <div className="min-h-screen bg-[#09261a] flex flex-col items-center justify-center px-6">
+        <div className="flex flex-col items-center gap-5 w-full max-w-xs">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl overflow-hidden border border-white/20 shadow-lg bg-[#353b4e] shrink-0">
+              <img src="/logo.png" alt="GitTrack Logo" className="w-full h-full object-cover" />
+            </div>
+            <div>
+              <h1 className="text-xl font-extrabold text-white tracking-tight leading-none">GitTrack</h1>
+              <p className="text-[11px] text-[#a0b5a8] font-medium mt-1">Student Contribution Tracker</p>
+            </div>
+          </div>
+
+          <div
+            role="progressbar"
+            aria-label="Loading GitTrack"
+            className="w-full h-1.5 bg-[#143d2b] rounded-full overflow-hidden shadow-inner"
+          >
+            <div className="h-full w-1/2 rounded-full bg-gradient-to-r from-[#10b981] via-[#e5b263] to-[#10b981] animate-loading-bar" />
+          </div>
+
+          <span className="text-xs text-[#a0b5a8] font-medium tracking-wide">
+            Preparing your workspace...
+          </span>
+        </div>
       </div>
     );
   }
