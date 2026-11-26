@@ -42,7 +42,8 @@ class PRDiscoveryEngine:
         scope_type: str = "global",
         scope_value: str = "*",
         date_from: str = None,
-        date_to: str = None
+        date_to: str = None,
+        date_field: str = "created"
     ) -> Tuple[List[Dict[str, Any]], bool]:
         """
         Execute search for a given scope, paginating until finished or capped.
@@ -58,7 +59,8 @@ class PRDiscoveryEngine:
             scope_type=scope_type,
             scope_value=scope_value,
             date_from=date_from,
-            date_to=date_to
+            date_to=date_to,
+            date_field=date_field
         )
 
         logger.info("Executing GitHub search query: '%s'", query)

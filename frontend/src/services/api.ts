@@ -22,7 +22,27 @@ export class ApiError extends Error {
   }
 }
 
+const CACHE_TTL_MS = 60_000;
+const responseCache = new Map<string, { data: unknown; expiresAt: number }>();
+
+export function invalidateApiCache() {
+  responseCache.clear();
+}
+
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  const method = (options.method || 'GET').toUpperCase();
+  const isCacheableGet =
+    method === 'GET' && !endpoint.startsWith('/sync-status') && !endpoint.startsWith('/auth/me');
+
+  if (isCacheableGet) {
+    const cached = responseCache.get(endpoint);
+    if (cached && Date.now() < cached.expiresAt) {
+      return cached.data as T;
+    }
+  } else if (method !== 'GET') {
+    responseCache.clear();
+  }
+
   const token = localStorage.getItem('opentrack_token');
   const headers = new Headers(options.headers || {});
   headers.set('Content-Type', 'application/json');
@@ -37,6 +57,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 
   if (response.status === 401) {
     // If unauthorized, clear token and notify
+    responseCache.clear();
     localStorage.removeItem('opentrack_token');
     window.dispatchEvent(new Event('auth-unauthorized'));
   }
@@ -54,7 +75,11 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     throw new ApiError(errorMsg, response.status);
   }
 
-  return response.json();
+  const data = (await response.json()) as T;
+  if (isCacheableGet) {
+    responseCache.set(endpoint, { data, expiresAt: Date.now() + CACHE_TTL_MS });
+  }
+  return data;
 }
 
 export const api = {

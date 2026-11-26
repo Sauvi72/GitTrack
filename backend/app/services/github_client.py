@@ -144,7 +144,8 @@ class GitHubClient:
         scope_type: str = "global",
         scope_value: Optional[str] = None,
         date_from: Optional[str] = None,
-        date_to: Optional[str] = None
+        date_to: Optional[str] = None,
+        date_field: str = "created"
     ) -> str:
         """
         Construct qualified GitHub search query string.
@@ -153,6 +154,7 @@ class GitHubClient:
           - is:pr author:alice org:myorg
           - is:pr author:alice repo:myorg/myrepo
           - is:pr author:alice created:2024-01-01..2024-06-30
+          - is:pr author:alice updated:>=2024-01-01
         """
         parts = ["is:pr", f"author:{author}"]
 
@@ -161,11 +163,12 @@ class GitHubClient:
         elif scope_type == "repository" and scope_value and scope_value != "*":
             parts.append(f"repo:{scope_value}")
 
+        field = date_field if date_field in ("created", "updated") else "created"
         if date_from and date_to:
-            parts.append(f"created:{date_from}..{date_to}")
+            parts.append(f"{field}:{date_from}..{date_to}")
         elif date_from:
-            parts.append(f"created:>={date_from}")
+            parts.append(f"{field}:>={date_from}")
         elif date_to:
-            parts.append(f"created:<={date_to}")
+            parts.append(f"{field}:<={date_to}")
 
         return " ".join(parts)

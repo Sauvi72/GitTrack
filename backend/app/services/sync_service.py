@@ -114,7 +114,8 @@ class SyncService:
                         username=student.github_username,
                         scope_type=scope_type,
                         scope_value=scope_val,
-                        date_from=since_str
+                        date_from=since_str,
+                        date_field="updated"
                     )
                     if not complete:
                         is_complete = False

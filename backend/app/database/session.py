@@ -17,14 +17,17 @@ if db_url.startswith("postgresql") and "sslmode=" not in db_url and "localhost" 
 
 # SQLite connection args require check_same_thread=False for FastAPI concurrency
 connect_args = {}
+engine_kwargs: dict = {"echo": False, "future": True}
 if db_url.startswith("sqlite"):
     connect_args = {"check_same_thread": False}
+else:
+    engine_kwargs["pool_pre_ping"] = True
+    engine_kwargs["pool_recycle"] = 300
 
 engine = create_engine(
     db_url,
     connect_args=connect_args,
-    echo=False,
-    future=True
+    **engine_kwargs
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, future=True)
