@@ -125,10 +125,10 @@ def get_sync_status(db: Session = Depends(get_db)):
         "last_sync": {
             "id": last_log.id,
             "status": last_log.status,
-            "started_at": last_log.started_at.isoformat() if last_log else None,
-            "finished_at": last_log.finished_at.isoformat() if last_log and last_log.finished_at else None,
-            "new_prs": last_log.new_pr_count if last_log else 0,
-            "updated_prs": last_log.updated_pr_count if last_log else 0,
-            "is_complete": last_log.is_complete if last_log else True
+            "started_at": last_log.started_at.isoformat(),
+            "finished_at": last_log.finished_at.isoformat() if last_log.finished_at else None,
+            "new_prs": last_log.new_pr_count or 0,
+            "updated_prs": last_log.updated_pr_count or 0,
+            "is_complete": bool(last_log.is_complete) if last_log.is_complete is not None else True
         } if last_log else None
     }

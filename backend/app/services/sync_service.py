@@ -192,11 +192,14 @@ class SyncService:
                 )
 
                 if existing_pr:
-                    # Update fields, preserving richer detail fields when updating from search summary
+                    # Update fields, preserving richer detail fields when updating from search summary.
+                    # Only skip zeros/nulls when data is a search summary (incomplete detail).
+                    # When has_full_search_data=True, we have complete detail — always write all fields.
                     preserve_if_empty = {"merged_by", "base_branch", "head_branch"}
                     preserve_if_zero = {"commits", "additions", "deletions", "changed_files", "review_comments"}
                     for field_name, field_val in processed.items():
-                        if has_full_search_data:
+                        if not has_full_search_data:
+                            # Incoming data is a bare search summary — don't overwrite richer DB values
                             if field_name in preserve_if_empty and field_val is None:
                                 continue
                             if field_name in preserve_if_zero and field_val == 0:
